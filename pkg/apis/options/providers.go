@@ -198,6 +198,8 @@ type GitHubOptions struct {
 	// Users allows users with these usernames to login
 	// even if they do not belong to the specified org and team or collaborators
 	Users []string `json:"users,omitempty"`
+	//Skip checking if email address is verified by github. Default value is 'false'
+	SkipEmailVerificationCheck bool `json:"skipEmailVerificationCheck,omitempty"`
 }
 
 type GitLabOptions struct {

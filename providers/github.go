@@ -21,11 +21,12 @@ import (
 // GitHubProvider represents an GitHub based Identity Provider
 type GitHubProvider struct {
 	*ProviderData
-	Org   string
-	Team  string
-	Repo  string
-	Token string
-	Users []string
+	Org                        string
+	Team                       string
+	Repo                       string
+	Token                      string
+	Users                      []string
+	SkipEmailVerificationCheck bool
 }
 
 var _ Provider = (*GitHubProvider)(nil)
@@ -80,6 +81,7 @@ func NewGitHubProvider(p *ProviderData, opts options.GitHubOptions) *GitHubProvi
 	provider.setOrgTeam(opts.Org, opts.Team)
 	provider.setRepo(opts.Repo, opts.Token)
 	provider.setUsers(opts.Users)
+	provider.setSkipEmailVerificationCheck(opts.SkipEmailVerificationCheck)
 	return provider
 }
 
@@ -127,6 +129,11 @@ func (p *GitHubProvider) setRepo(repo, token string) {
 // setUsers configures allowed usernames
 func (p *GitHubProvider) setUsers(users []string) {
 	p.Users = users
+}
+
+// setSkipEmailVerificationCheck disables checking of verificaiton status of github provided email
+func (p *GitHubProvider) setSkipEmailVerificationCheck(skipEmailVerificationCheck bool) {
+	p.SkipEmailVerificationCheck = skipEmailVerificationCheck
 }
 
 // EnrichSession updates the User & Email after the initial Redeem
@@ -318,20 +325,18 @@ func (p *GitHubProvider) getEmail(ctx context.Context, s *sessions.SessionState)
 		WithContext(ctx).
 		WithHeaders(makeGitHubHeader(s.AccessToken)).
 		Do()
-	
+
 	logger.Printf("GitHub API Response - Status: %d, Body: %s", result.StatusCode(), result.Body())
-	
+
 	err := result.UnmarshalInto(&emails)
 	if err != nil {
 		return err
 	}
 
 	for _, email := range emails {
-		if email.Verified {
-			if email.Primary {
-				s.Email = email.Email
-				return nil
-			}
+		if email.Primary && (p.SkipEmailVerificationCheck || email.Verified) {
+			s.Email = email.Email
+			return nil
 		}
 	}
 
