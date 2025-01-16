@@ -312,12 +312,16 @@ func (p *GitHubProvider) getEmail(ctx context.Context, s *sessions.SessionState)
 	}
 
 	endpoint := p.makeGitHubAPIEndpoint("/user/emails", nil)
+	logger.Printf("GitHub API Request - GET %s", endpoint.String())
 
-	err := requests.New(endpoint.String()).
+	result := requests.New(endpoint.String()).
 		WithContext(ctx).
 		WithHeaders(makeGitHubHeader(s.AccessToken)).
-		Do().
-		UnmarshalInto(&emails)
+		Do()
+	
+	logger.Printf("GitHub API Response - Status: %d, Body: %s", result.StatusCode(), result.Body())
+	
+	err := result.UnmarshalInto(&emails)
 	if err != nil {
 		return err
 	}
