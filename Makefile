@@ -26,7 +26,7 @@ all: lint $(BINARY)
 .PHONY: clean
 clean:
 	-rm -rf release
-	-rm -f $(BINARY)
+	-rm -f $(BINARY)-amd64 $(BINARY)-arm64
 
 .PHONY: distclean
 distclean: clean
@@ -39,8 +39,13 @@ lint: validate-go-version
 .PHONY: build
 build: validate-go-version clean $(BINARY)
 
-$(BINARY):
-	CGO_ENABLED=0 $(GO) build -a -installsuffix cgo -ldflags="-X github.com/oauth2-proxy/oauth2-proxy/v7/pkg/version.VERSION=${VERSION}" -o $@ github.com/oauth2-proxy/oauth2-proxy/v7
+$(BINARY): $(BINARY)-amd64 $(BINARY)-arm64
+
+$(BINARY)-amd64:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -a -installsuffix cgo -ldflags="-X github.com/oauth2-proxy/oauth2-proxy/v7/pkg/version.VERSION=${VERSION}" -o $@ github.com/oauth2-proxy/oauth2-proxy/v7
+
+$(BINARY)-arm64:
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -a -installsuffix cgo -ldflags="-X github.com/oauth2-proxy/oauth2-proxy/v7/pkg/version.VERSION=${VERSION}" -o $@ github.com/oauth2-proxy/oauth2-proxy/v7
 
 DOCKER_BUILD_PLATFORM         ?= linux/amd64,linux/arm64,linux/ppc64le,linux/arm/v7,linux/s390x
 DOCKER_BUILD_RUNTIME_IMAGE    ?= gcr.io/distroless/static:nonroot
