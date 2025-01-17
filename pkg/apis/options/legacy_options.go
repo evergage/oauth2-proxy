@@ -498,6 +498,7 @@ type LegacyProvider struct {
 	GitHubToken                            string   `flag:"github-token" cfg:"github_token"`
 	GitHubUsers                            []string `flag:"github-user" cfg:"github_users"`
 	GitHubSkipEmailVerificationCheck       bool     `flag:"github-skip-email-verification-check" cfg:"github_skip_email_verification_check"`
+	GitHubEnableEmailEndpointLogging       bool     `flag:"github-enable-email-endpoint-logging" cfg:"github_enable_email_endpoint_logging"`
 	GitLabGroup                            []string `flag:"gitlab-group" cfg:"gitlab_groups"`
 	GitLabProjects                         []string `flag:"gitlab-project" cfg:"gitlab_projects"`
 	GoogleGroupsLegacy                     []string `flag:"google-group" cfg:"google_group"`
@@ -562,7 +563,8 @@ func legacyProviderFlagSet() *pflag.FlagSet {
 	flagSet.String("github-team", "", "restrict logins to members of this team")
 	flagSet.String("github-repo", "", "restrict logins to collaborators of this repository")
 	flagSet.String("github-token", "", "the token to use when verifying repository collaborators (must have push access to the repository)")
-	flagSet.String("github-skip-email-verification-check", "", "optionally skip github email verification checks, unverified and verified emails will be treated the same")
+	flagSet.Bool("github-skip-email-verification-check", false, "optionally skip github email verification checks, unverified and verified emails will be treated the same")
+	flagSet.Bool("github-enable-email-endpoint-logging", false, "enable detailed logging of GitHub email endpoint requests/responses")
 	flagSet.StringSlice("github-user", []string{}, "allow users with these usernames to login even if they do not belong to the specified org and team or collaborators (may be given multiple times)")
 	flagSet.StringSlice("gitlab-group", []string{}, "restrict logins to members of this group (may be given multiple times)")
 	flagSet.StringSlice("gitlab-project", []string{}, "restrict logins to members of this project (may be given multiple times) (eg `group/project=accesslevel`). Access level should be a value matching Gitlab access levels (see https://docs.gitlab.com/ee/api/members.html#valid-access-levels), defaulted to 20 if absent")
@@ -725,6 +727,7 @@ func (l *LegacyProvider) convert() (Providers, error) {
 			Token:                      l.GitHubToken,
 			Users:                      l.GitHubUsers,
 			SkipEmailVerificationCheck: l.GitHubSkipEmailVerificationCheck,
+			EnableEmailEndpointLogging: l.GitHubEnableEmailEndpointLogging,
 		}
 	case "keycloak-oidc":
 		provider.KeycloakConfig = KeycloakOptions{

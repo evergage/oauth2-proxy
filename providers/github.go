@@ -27,6 +27,7 @@ type GitHubProvider struct {
 	Token                      string
 	Users                      []string
 	SkipEmailVerificationCheck bool
+	EnableEmailEndpointLogging bool
 }
 
 var _ Provider = (*GitHubProvider)(nil)
@@ -82,6 +83,7 @@ func NewGitHubProvider(p *ProviderData, opts options.GitHubOptions) *GitHubProvi
 	provider.setRepo(opts.Repo, opts.Token)
 	provider.setUsers(opts.Users)
 	provider.setSkipEmailVerificationCheck(opts.SkipEmailVerificationCheck)
+	provider.setEnableEmailEndpointLogging(opts.EnableEmailEndpointLogging)
 	return provider
 }
 
@@ -134,6 +136,11 @@ func (p *GitHubProvider) setUsers(users []string) {
 // setSkipEmailVerificationCheck disables checking of verificaiton status of github provided email
 func (p *GitHubProvider) setSkipEmailVerificationCheck(skipEmailVerificationCheck bool) {
 	p.SkipEmailVerificationCheck = skipEmailVerificationCheck
+}
+
+// setEnableEmailEndpointLogging enables detailed logging of GitHub email endpoint requests/responses
+func (p *GitHubProvider) setEnableEmailEndpointLogging(enableEmailEndpointLogging bool) {
+	p.EnableEmailEndpointLogging = enableEmailEndpointLogging
 }
 
 // EnrichSession updates the User & Email after the initial Redeem
@@ -319,14 +326,19 @@ func (p *GitHubProvider) getEmail(ctx context.Context, s *sessions.SessionState)
 	}
 
 	endpoint := p.makeGitHubAPIEndpoint("/user/emails", nil)
-	logger.Printf("GitHub API Request - GET %s", endpoint.String())
+
+	if p.EnableEmailEndpointLogging {
+		logger.Printf("GitHub API Request - GET %s", endpoint.String())
+	}
 
 	result := requests.New(endpoint.String()).
 		WithContext(ctx).
 		WithHeaders(makeGitHubHeader(s.AccessToken)).
 		Do()
 
-	logger.Printf("GitHub API Response - Status: %d, Body: %s", result.StatusCode(), result.Body())
+	if p.EnableEmailEndpointLogging {
+		logger.Printf("GitHub API Response - Status: %d, Body: %s", result.StatusCode(), result.Body())
+	}
 
 	err := result.UnmarshalInto(&emails)
 	if err != nil {

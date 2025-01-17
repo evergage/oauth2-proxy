@@ -200,6 +200,8 @@ type GitHubOptions struct {
 	Users []string `json:"users,omitempty"`
 	//Skip checking if email address is verified by github. Default value is 'false'
 	SkipEmailVerificationCheck bool `json:"skipEmailVerificationCheck,omitempty"`
+	// EnableEmailEndpointLogging enables detailed logging of GitHub email endpoint requests/responses
+	EnableEmailEndpointLogging bool `json:"enableEmailEndpointLogging,omitempty"`
 }
 
 type GitLabOptions struct {
