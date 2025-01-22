@@ -26,7 +26,7 @@ all: lint $(BINARY)
 .PHONY: clean
 clean:
 	-rm -rf release
-	-rm -f $(BINARY)-amd64 $(BINARY)-arm64
+	-rm -f $(BINARY)
 
 .PHONY: distclean
 distclean: clean
